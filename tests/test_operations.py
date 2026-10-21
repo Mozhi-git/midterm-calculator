@@ -1,5 +1,7 @@
 import pytest
 from app.operations import add, subtract, multiply, divide, power, root, modulus, integer_division, percentage, absolute_difference
+from app.operations import Addition, Subtraction, Multiplication, Division, Power, Root, Modulus, IntegerDivision, Percentage, AbsoluteDifference
+from app.operations import OperationFactory
 
 def test_add():
     assert add(5, 3) == 8
@@ -72,6 +74,103 @@ def test_absolute_difference():
     assert absolute_difference(4, 10) == 6
     assert absolute_difference(5, 5) == 0
 
+def test_addition_class():
+    operation = Addition()
+    assert operation.execute(5, 3) == 8
+
+def test_subtraction_class():
+    operation = Subtraction()
+    assert operation.execute(10, 4) == 6
+
+def test_multiplication_class():
+    operation = Multiplication()
+    assert operation.execute(5, 3) == 15
+
+def test_division_class():
+    operation = Division()
+    assert operation.execute(10, 2) == 5
+
+
+def test_division_class_by_zero():
+    operation = Division()
+    with pytest.raises(ValueError):
+        operation.execute(10, 0)
+
+def test_power_class():
+    operation = Power()
+    assert operation.execute(2, 3) == 8
+    assert operation.execute(2, -1) == 0.5
+
+def test_root_class():
+    operation = Root()
+    assert operation.execute(25, 2) == 5
+    assert operation.execute(27, 3) == pytest.approx(3)
+    assert operation.execute(-27, 3) == pytest.approx(-3)
+
+def test_modulus_class():
+    operation = Modulus()
+    assert operation.execute(10, 3) == 1
+    assert operation.execute(20, 5) == 0
+
+
+def test_modulus_class_by_zero():
+    operation = Modulus()
+    with pytest.raises(ValueError):
+        operation.execute(10, 0)
+
+def test_integer_division_class():
+    operation = IntegerDivision()
+    assert operation.execute(10, 3) == 3
+    assert operation.execute(-10, 3) == -4
+
+
+def test_integer_division_class_by_zero():
+    operation = IntegerDivision()
+    with pytest.raises(ValueError):
+        operation.execute(10, 0)
+
+def test_percentage_class():
+    operation = Percentage()
+    assert operation.execute(25, 100) == 25
+    assert operation.execute(50, 200) == 25
+
+
+def test_percentage_class_by_zero():
+    operation = Percentage()
+    with pytest.raises(ValueError):
+        operation.execute(25, 0)
+
+def test_absolute_difference_class():
+    operation = AbsoluteDifference()
+    assert operation.execute(10, 4) == 6
+    assert operation.execute(4, 10) == 6
+    assert operation.execute(5, 5) == 0
+
+def test_factory():
+    operation = OperationFactory.create("add")
+    assert isinstance(operation, Addition)
+    assert operation.execute(5, 3) == 8
+
+
+def test_factory_invalid():
+    with pytest.raises(ValueError):
+        OperationFactory.create("unknown")
+
+@pytest.mark.parametrize("name, expected_class", [
+    ("add", Addition),
+    ("subtract", Subtraction),
+    ("multiply", Multiplication),
+    ("divide", Division),
+    ("power", Power),
+    ("root", Root),
+    ("modulus", Modulus),
+    ("integer_division", IntegerDivision),
+    ("percentage", Percentage),
+    ("absolute_difference", AbsoluteDifference),
+])
+def test_factory_all_operations(name, expected_class):
+    operation = OperationFactory.create(name)
+    assert isinstance(operation, expected_class)
 
 
     
