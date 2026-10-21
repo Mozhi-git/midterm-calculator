@@ -3,6 +3,7 @@ from app.auto_save_observer import AutoSaveObserver
 from app.operations import OperationFactory
 from app.calculation import Calculation
 from app.history import History
+from app.calculator_config import CalculatorConfig
 
 
 class Calculator:
@@ -10,7 +11,7 @@ class Calculator:
         self.history = History()
         self.observers = []
         self.add_observer(LoggingObserver())
-        self.add_observer(AutoSaveObserver())
+        self.add_observer(AutoSaveObserver(CalculatorConfig.HISTORY_FILE))
 
     def add_observer(self, observer):
         self.observers.append(observer)
@@ -42,3 +43,5 @@ class Calculator:
         for observer in self.observers:
             if isinstance(observer, AutoSaveObserver):
                 observer.save_history(self.history.get_history())
+
+                

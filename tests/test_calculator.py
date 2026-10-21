@@ -3,6 +3,7 @@ from app.calculator import Calculator
 from app.calculation import Calculation
 import pandas as pd
 from app.auto_save_observer import AutoSaveObserver
+from app.calculator_config import CalculatorConfig
 
 
 def test_add_observer():
@@ -116,3 +117,13 @@ def test_redo_updates_csv(tmp_path):
     assert len(data) == 2
     assert data.iloc[0]["operation"] == "add"
     assert data.iloc[1]["operation"] == "multiply"
+
+def test_calculator_history_config():
+    calculator = Calculator()
+
+    for observer in calculator.observers:
+        if isinstance(observer, AutoSaveObserver):
+            assert observer.filename == CalculatorConfig.HISTORY_FILE
+            return
+
+    assert False, "AutoSaveObserver not found"
