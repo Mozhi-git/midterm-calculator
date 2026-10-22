@@ -114,3 +114,73 @@ def test_repl_division_by_zero(monkeypatch, capsys):
     assert "Error: Cannot divide by zero" in captured.out
     assert "Result: 8.0" in captured.out
     assert "Goodbye!" in captured.out
+
+def test_repl_help(monkeypatch, capsys):
+    inputs = iter(["help", "exit"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+    with patch("main.setup_logging"):
+        main()
+
+    captured = capsys.readouterr()
+
+    assert "Available commands:" in captured.out
+    assert "int_divide" in captured.out
+    assert "percent" in captured.out
+    assert "abs_diff" in captured.out
+
+def test_repl_save(monkeypatch, capsys, tmp_path):
+    from app.calculator_config import CalculatorConfig
+
+    filename = tmp_path / "history.csv"
+    monkeypatch.setattr(CalculatorConfig, "HISTORY_FILE", str(filename))
+
+    inputs = iter(["add", "5", "3", "save", "exit"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+    with patch("main.setup_logging"):
+        main()
+
+    captured = capsys.readouterr()
+
+    assert "History saved" in captured.out
+    assert filename.exists()
+
+def test_repl_load(monkeypatch, capsys, tmp_path):
+    from app.calculator_config import CalculatorConfig
+    from app.calculation import Calculation
+    from app.history import History
+    from app.calculator import Calculator
+
+    filename = tmp_path / "history.csv"
+    monkeypatch.setattr(CalculatorConfig, "HISTORY_FILE", str(filename))
+
+    calculator = Calculator()
+    calculator.calculate("add", 5, 3)
+    calculator.save_history()
+
+    inputs = iter(["load", "history", "exit"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+    with patch("main.setup_logging"):
+        main()
+
+    captured = capsys.readouterr()
+
+    assert "History loaded" in captured.out
+    assert "add 5" in captured.out
+
+def test_dynamic_help(monkeypatch, capsys):
+    from main import show_help
+    from app.operations import OperationFactory
+
+    monkeypatch.setitem(
+        OperationFactory.operations,
+        "test_operation",
+        object
+    )
+
+    show_help()
+    captured = capsys.readouterr()
+
+    assert "test_operation" in captured.out

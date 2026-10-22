@@ -2,4 +2,4 @@ pytest
 pytest-cov
 pandas
 python-dotenv
-colorama
+colorama==0.4.6

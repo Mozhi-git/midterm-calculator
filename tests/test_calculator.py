@@ -4,6 +4,12 @@ from app.calculation import Calculation
 import pandas as pd
 from app.auto_save_observer import AutoSaveObserver
 from app.calculator_config import CalculatorConfig
+import pytest
+
+@pytest.fixture(autouse=True)
+def clean_history(tmp_path, monkeypatch):
+    filename = tmp_path / "history.csv"
+    monkeypatch.setattr(CalculatorConfig, "HISTORY_FILE", str(filename))
 
 
 def test_add_observer():
@@ -127,3 +133,63 @@ def test_calculator_history_config():
             return
 
     assert False, "AutoSaveObserver not found"
+
+def test_history_after_restart(tmp_path, monkeypatch):
+    filename = tmp_path / "history.csv"
+
+    monkeypatch.setattr(CalculatorConfig, "HISTORY_FILE", str(filename))
+
+    calculator1 = Calculator()
+    calculator1.calculate("add", 5, 3)
+
+    calculator2 = Calculator()
+    assert len(calculator2.history.get_history()) == 1
+
+    calculator2.calculate("multiply", 4, 2)
+
+    calculator3 = Calculator()
+    history = calculator3.history.get_history()
+
+    assert len(history) == 2
+    assert history[0].operation == "add"
+    assert history[1].operation == "multiply"
+
+def test_auto_save_disabled(tmp_path, monkeypatch):
+    filename = tmp_path / "history.csv"
+
+    monkeypatch.setattr(CalculatorConfig, "HISTORY_FILE", str(filename))
+    monkeypatch.setattr(CalculatorConfig, "AUTO_SAVE", False)
+
+    calculator = Calculator()
+    calculator.calculate("add", 5, 3)
+
+    assert len(calculator.history.get_history()) == 1
+    assert not filename.exists()
+
+def test_calculation_precision(monkeypatch):
+    monkeypatch.setattr(CalculatorConfig, "PRECISION", 2)
+
+    calculator = Calculator()
+    result = calculator.calculate("divide", 10, 3)
+
+    assert result == 3.33
+    assert calculator.history.get_history()[-1].result == 3.33
+
+def test_max_input_value(monkeypatch):
+    monkeypatch.setattr(CalculatorConfig, "MAX_INPUT_VALUE", 100)
+
+    calculator = Calculator()
+
+    with pytest.raises(ValueError):
+        calculator.calculate("add", 200, 5)
+
+    with pytest.raises(ValueError):
+        calculator.calculate("add", 5, -200)
+
+    assert calculator.calculate("add", 50, 25) == 75
+
+def test_nonnumeric_input():
+    calculator = Calculator()
+
+    with pytest.raises((TypeError, ValueError)):
+        calculator.calculate("add", "abc", 5)

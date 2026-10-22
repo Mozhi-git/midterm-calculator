@@ -2,6 +2,7 @@ import pytest
 from app.operations import add, subtract, multiply, divide, power, root, modulus, integer_division, percentage, absolute_difference
 from app.operations import Addition, Subtraction, Multiplication, Division, Power, Root, Modulus, IntegerDivision, Percentage, AbsoluteDifference
 from app.operations import OperationFactory
+from app.exceptions import OperationError
 
 def test_add():
     assert add(5, 3) == 8
@@ -171,6 +172,10 @@ def test_factory_invalid():
 def test_factory_all_operations(name, expected_class):
     operation = OperationFactory.create(name)
     assert isinstance(operation, expected_class)
+
+def test_custom_operation_error():
+    with pytest.raises(OperationError):
+        OperationFactory.create("unknown")
 
 
     

@@ -1,3 +1,5 @@
+from app.exceptions import OperationError
+
 def add(a, b):
     return a + b
 
@@ -93,11 +95,14 @@ class OperationFactory:
         "modulus": Modulus,
         "integer_division": IntegerDivision,
         "percentage": Percentage,
-        "absolute_difference": AbsoluteDifference
+        "absolute_difference": AbsoluteDifference,
+        "int_divide": IntegerDivision,
+        "percent": Percentage,
+        "abs_diff": AbsoluteDifference,
     }
 
     @staticmethod
     def create(name):
         if name not in OperationFactory.operations:
-            raise ValueError("Unknown operation")
+            raise OperationError("Unknown operation")
         return OperationFactory.operations[name]()
