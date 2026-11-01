@@ -22,7 +22,12 @@ class CalculatorConfig:
     LOG_DIR = os.getenv("CALCULATOR_LOG_DIR", ".")
     HISTORY_DIR = os.getenv("CALCULATOR_HISTORY_DIR", ".")
     AUTO_SAVE = os.getenv("CALCULATOR_AUTO_SAVE", "true").lower() == "true"
-    PRECISION = int(os.getenv("CALCULATOR_PRECISION", "2"))
+    try:
+        PRECISION = int(os.getenv("CALCULATOR_PRECISION", "2"))
+        if PRECISION < 0:
+            raise ValueError("Precision cannot be negative")
+    except ValueError:
+        PRECISION = 2
     MAX_INPUT_VALUE = float(os.getenv("CALCULATOR_MAX_INPUT_VALUE", "1000000"))
     DEFAULT_ENCODING = os.getenv("CALCULATOR_DEFAULT_ENCODING", "utf-8")
 
