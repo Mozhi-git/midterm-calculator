@@ -51,8 +51,7 @@ class Calculator:
    
 
     def save_history(self):
-        for observer in self.observers:
-            if isinstance(observer, AutoSaveObserver):
-                observer.save_history(self.history.get_history())
+        auto_save = AutoSaveObserver(CalculatorConfig.HISTORY_FILE)
+        auto_save.save_history(self.history.get_history())
 
                 
