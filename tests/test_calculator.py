@@ -193,3 +193,24 @@ def test_nonnumeric_input():
 
     with pytest.raises((TypeError, ValueError)):
         calculator.calculate("add", "abc", 5)
+
+def test_manual_save_when_autosave_disabled(monkeypatch, tmp_path):
+    from app.calculator import Calculator
+    from app.calculator_config import CalculatorConfig
+
+    history_file = tmp_path / "manual_history.csv"
+
+    monkeypatch.setattr(CalculatorConfig, "AUTO_SAVE", False)
+    monkeypatch.setattr(CalculatorConfig, "HISTORY_FILE", str(history_file))
+
+    calculator = Calculator()
+    calculator.calculate("add", 15, 7)
+
+    # Autosave should not create the file
+    assert not history_file.exists()
+
+    # Manual save should create the file
+    calculator.save_history()
+
+    assert history_file.exists()
+    assert "add,15,7,22," in history_file.read_text()
