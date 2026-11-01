@@ -23,3 +23,26 @@ def test_setup_logging(tmp_path, monkeypatch):
     assert "Test calculation" in filename.read_text()
 
     logging.shutdown()
+
+def test_logging_fallback(monkeypatch):
+    import logging
+    from app.logger import setup_logging
+
+    original_basic_config = logging.basicConfig
+    attempts = []
+
+    def fake_basic_config(**kwargs):
+        attempts.append(kwargs)
+
+        if "filename" in kwargs:
+            raise OSError("Cannot write log file")
+
+        return original_basic_config(**kwargs)
+
+    monkeypatch.setattr(logging, "basicConfig", fake_basic_config)
+
+    setup_logging()
+
+    assert len(attempts) == 2
+    assert "filename" in attempts[0]
+    assert "filename" not in attempts[1]

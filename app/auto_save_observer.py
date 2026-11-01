@@ -25,7 +25,12 @@ class AutoSaveObserver:
             for calc in self.calculations
         ]
 
-        pd.DataFrame(
-            data,
-            columns=["operation", "a", "b", "result", "timestamp"]
-        ).to_csv(self.filename, index=False)
+        try:
+            pd.DataFrame(
+                data,
+                columns=["operation", "a", "b", "result", "timestamp"]
+            ).to_csv(self.filename, index=False)
+        except OSError as error:
+            raise OSError(
+                f"Unable to save calculation history to {self.filename}: {error}"
+            ) from error

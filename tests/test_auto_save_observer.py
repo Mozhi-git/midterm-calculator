@@ -36,3 +36,13 @@ def test_save_history(tmp_path):
     data = pd.read_csv(filename)
     assert len(data) == 1
     assert data.iloc[0]["operation"] == "add"
+
+def test_csv_write_failure(tmp_path):
+    import pytest
+    from app.auto_save_observer import AutoSaveObserver
+
+    invalid_path = tmp_path / "missing_folder" / "history.csv"
+    observer = AutoSaveObserver(str(invalid_path))
+
+    with pytest.raises(OSError, match="Unable to save calculation history"):
+        observer.save_history([])
