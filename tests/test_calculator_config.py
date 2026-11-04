@@ -37,3 +37,30 @@ def test_invalid_precision_falls_back_to_default():
         )
 
         assert result.stdout.strip() == "2"
+
+
+def test_invalid_startup_settings_use_defaults():
+    settings = [
+        ("CALCULATOR_MAX_HISTORY_SIZE", "MAX_HISTORY", "100"),
+        ("CALCULATOR_MAX_INPUT_VALUE", "MAX_INPUT_VALUE", "1000000.0"),
+    ]
+
+    for variable, attribute, expected in settings:
+        for invalid_value in ("abc", "-5", "0", "nan"):
+            env = os.environ.copy()
+            env[variable] = invalid_value
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    "-c",
+                    f"from app.calculator_config import CalculatorConfig; "
+                    f"print(CalculatorConfig.{attribute})",
+                ],
+                env=env,
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+
+            assert result.stdout.strip() == expected

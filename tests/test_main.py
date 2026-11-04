@@ -184,3 +184,55 @@ def test_dynamic_help(monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert "test_operation" in captured.out
+
+
+def test_repl_continues_after_save_error(monkeypatch, capsys, tmp_path):
+    from app.calculator_config import CalculatorConfig
+
+    monkeypatch.setattr(
+        CalculatorConfig, "HISTORY_FILE", str(tmp_path / "history.csv")
+    )
+    monkeypatch.setattr(CalculatorConfig, "AUTO_SAVE", False)
+
+    inputs = iter(["save", "add", "5", "3", "exit"])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+    with patch("main.setup_logging"), patch(
+        "main.Calculator.save_history",
+        side_effect=OSError("Disk full")
+    ):
+        main()
+
+    captured = capsys.readouterr()
+
+    assert "Unable to save history" in captured.out
+    assert "Result: 8.0" in captured.out
+    assert "Goodbye!" in captured.out
+
+def test_repl_continues_after_autosave_error(monkeypatch, capsys, tmp_path):
+    from app.calculator_config import CalculatorConfig
+
+    monkeypatch.setattr(
+        CalculatorConfig, "HISTORY_FILE", str(tmp_path / "history.csv")
+    )
+    monkeypatch.setattr(CalculatorConfig, "AUTO_SAVE", True)
+
+    inputs = iter([
+        "add", "5", "3",
+        "add", "10", "2",
+        "exit"
+    ])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+    with patch("main.setup_logging"), patch(
+        "app.auto_save_observer.AutoSaveObserver.save_history",
+        side_effect=[OSError("Disk full"), None]
+    ):
+        main()
+
+    captured = capsys.readouterr()
+
+    assert "Error:" in captured.out
+    assert "Disk full" in captured.out
+    assert "Result: 12.0" in captured.out
+    assert "Goodbye!" in captured.out

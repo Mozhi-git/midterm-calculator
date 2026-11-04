@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import math
 
 load_dotenv()
 
@@ -13,9 +14,17 @@ class CalculatorConfig:
         Path(os.getenv("CALCULATOR_LOG_DIR", ".")) /
         os.getenv("CALCULATOR_LOG_FILE", "calculator.log")
     )
-    MAX_HISTORY = MAX_HISTORY_SIZE = int(
-    os.getenv("CALCULATOR_MAX_HISTORY_SIZE", "100")
-)
+
+    try:
+        MAX_HISTORY = MAX_HISTORY_SIZE = int(
+            os.getenv("CALCULATOR_MAX_HISTORY_SIZE", "100")
+        )
+        if MAX_HISTORY <= 0:
+            raise ValueError("Maximum history must be positive")
+    except ValueError:
+        MAX_HISTORY = MAX_HISTORY_SIZE = 100
+
+
 
 
 
@@ -28,7 +37,14 @@ class CalculatorConfig:
             raise ValueError("Precision cannot be negative")
     except ValueError:
         PRECISION = 2
-    MAX_INPUT_VALUE = float(os.getenv("CALCULATOR_MAX_INPUT_VALUE", "1000000"))
+
+    try:
+        MAX_INPUT_VALUE = float(os.getenv("CALCULATOR_MAX_INPUT_VALUE", "1000000"))
+        if not math.isfinite(MAX_INPUT_VALUE) or MAX_INPUT_VALUE <= 0:
+            raise ValueError("Maximum input value must be positive and finite")
+    except ValueError:
+        MAX_INPUT_VALUE = 1000000.0
+
     DEFAULT_ENCODING = os.getenv("CALCULATOR_DEFAULT_ENCODING", "utf-8")
 
 

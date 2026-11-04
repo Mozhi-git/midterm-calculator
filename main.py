@@ -3,6 +3,7 @@ from app.calculator import Calculator
 from app.calculator_config import CalculatorConfig
 from colorama import Fore, Style
 from app.operations import OperationFactory
+from app.exceptions import ValidationError
 
 def dynamic_help(func):
     def wrapper():
@@ -34,22 +35,42 @@ def main():
             for calc in calculator.history.get_history():
                 print(calc.operation, calc.a, calc.b, "=", calc.result)
 
+
         elif command == "clear":
             calculator.history.clear()
-            calculator.save_history()
-            print("History cleared")
+            try:
+                calculator.save_history()
+                print("History cleared")
+            except OSError as error:
+                print(f"History cleared, but unable to save: {error}")
+
+
 
         elif command == "undo":
-            calculator.undo()
-            print("Undo completed")
+            try:
+                calculator.undo()
+                print("Undo completed")
+            except OSError as error:
+                print(f"Unable to save history after undo: {error}")
+
+
 
         elif command == "redo":
-            calculator.redo()
-            print("Redo completed")
+            try:
+                calculator.redo()
+                print("Redo completed")
+            except OSError as error:
+                print(f"Unable to save history after redo: {error}")
+
+
 
         elif command == "save":
-            calculator.save_history()
-            print("History saved")
+            try:
+                calculator.save_history()
+                print("History saved")
+            except OSError as error:
+                print(f"Unable to save history: {error}")
+
 
         elif command == "load":
             try:
@@ -72,8 +93,10 @@ def main():
                 b = float(input("Second number: "))
                 result = calculator.calculate(command, a, b)
                 print(Fore.GREEN + f"Result: {result}" + Style.RESET_ALL)
-            except ValueError as error:
+
+            except (ValueError, OSError, ValidationError) as error:
                 print(Fore.RED + f"Error: {error}" + Style.RESET_ALL)
+
 
         else:
                 print("Unknown command. Please try again.")
