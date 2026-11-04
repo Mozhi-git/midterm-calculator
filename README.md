@@ -127,7 +127,7 @@ python -m pytest tests/ --cov=app --cov=main --cov-report=term-missing --cov-fai
 
 The assignment requires at least 90% test coverage.
 
-The latest full test run passed all 102 tests with 94.17% code coverage, including the CLI.
+The latest full test run passed all 103 tests with 96.12% code coverage, including the CLI.
 
 
 ## CI/CD Information

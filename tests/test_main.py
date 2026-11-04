@@ -236,3 +236,36 @@ def test_repl_continues_after_autosave_error(monkeypatch, capsys, tmp_path):
     assert "Disk full" in captured.out
     assert "Result: 12.0" in captured.out
     assert "Goodbye!" in captured.out
+
+
+def test_repl_recovers_from_clear_undo_redo_errors(monkeypatch, capsys, tmp_path):
+    from app.calculator_config import CalculatorConfig
+
+    monkeypatch.setattr(
+        CalculatorConfig, "HISTORY_FILE", str(tmp_path / "history.csv")
+    )
+    monkeypatch.setattr(CalculatorConfig, "AUTO_SAVE", False)
+
+    inputs = iter([
+        "add", "5", "3",
+        "undo",
+        "redo",
+        "clear",
+        "add", "2", "3",
+        "exit"
+    ])
+    monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+    with patch("main.setup_logging"), patch(
+        "main.Calculator.save_history",
+        side_effect=OSError("Disk full")
+    ):
+        main()
+
+    output = capsys.readouterr().out
+
+    assert "Unable to save history after undo" in output
+    assert "Unable to save history after redo" in output
+    assert "History cleared, but unable to save" in output
+    assert "Result: 5.0" in output
+    assert "Goodbye!" in output
